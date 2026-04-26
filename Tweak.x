@@ -26,30 +26,6 @@
 
 @end
 
-static NSBundle *TweakBundle(void) {
-
-    static NSBundle *bundle;
-
-    static dispatch_once_t onceToken;
-
-    dispatch_once(&onceToken, ^{
-
-        NSString *path = [[NSBundle mainBundle] pathForResource:@"YouGroupSettings" ofType:@"bundle"];
-
-        if (!path) {
-
-            path = @"/Library/Application Support/YouGroupSettings.bundle";
-
-        }
-
-        bundle = [NSBundle bundleWithPath:path];
-
-    });
-
-    return bundle;
-
-}
-
 %hook YTAppSettingsGroupPresentationData
 
 + (NSArray *)orderedGroups {
@@ -96,15 +72,15 @@ static NSBundle *TweakBundle(void) {
 
             @(YouSlider),
 
-            @(1080),   // Return YouTube Dislike
+            @(1080),
 
-            @(517),    // DontEatMyContent
+            @(517),
 
-            @(200),    // YouPiP
+            @(200),
 
-            @(2168),   // YTHoldForSpeed
+            @(2168),
 
-            @(1222)    // YTVideoOverlay
+            @(1222)
 
         ] mutableCopy];
 
