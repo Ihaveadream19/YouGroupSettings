@@ -1,97 +1,169 @@
-#import <YouTubeHeader/YTIIcon.h>
-#import <YouTubeHeader/YTSettingsGroupData.h>
-#import <PSHeader/Misc.h>
+#import <UIKit/UIKit.h>
 
-#define LOC(x) [tweakBundle localizedStringForKey:x value:nil table:nil]
+#import <Foundation/Foundation.h>
+
+#import <YouTubeHeader/YTSettingsGroupData.h>
+
+#import <YouTubeHeader/YTIIcon.h>
+
+#define TweakGroup 'psyt'
+
+#define YTIcons 'ytic'
+
+#define YouChooseQuality 'ycql'
+
+#define YTUHD 'ythd'
+
+#define YouSlider 'ytsl'
+
+#define LOC(x) [[NSBundle mainBundle] localizedStringForKey:x value:nil table:nil]
 
 @interface YTSettingsGroupData (YouGroupSettings)
-+ (NSMutableArray <NSNumber *> *)tweaks;
+
++ (NSMutableArray<NSNumber *> *)tweaks;
+
 @end
 
-static const NSInteger TweakGroup = 'psyt';
-static const NSInteger YTIcons = 'ytic';
-static const NSInteger YouChooseQuality = 'ycql';
-static const NSInteger YTUHD = 'ythd';
-static const NSInteger YouSlider = 'ytsl';
-static const NSInteger YTweaks = 'ytwk';
-static const NSInteger YTFlags = 'ytfl';
-static const NSInteger VolumeBoostYT = 'ndyt';
+static NSBundle *TweakBundle(void) {
 
-NSBundle *TweakBundle() {
-    static NSBundle *bundle = nil;
+    static NSBundle *bundle;
+
     static dispatch_once_t onceToken;
+
     dispatch_once(&onceToken, ^{
-        NSString *tweakBundlePath = [[NSBundle mainBundle] pathForResource:@"YouGroupSettings" ofType:@"bundle"];
-        bundle = [NSBundle bundleWithPath:tweakBundlePath ?: PS_ROOT_PATH_NS(@"/Library/Application Support/YouGroupSettings.bundle")];
+
+        NSString *path = [[NSBundle mainBundle] pathForResource:@"YouGroupSettings" ofType:@"bundle"];
+
+        if (!path) {
+
+            path = @"/Library/Application Support/YouGroupSettings.bundle";
+
+        }
+
+        bundle = [NSBundle bundleWithPath:path];
+
     });
+
     return bundle;
+
 }
 
 %hook YTAppSettingsGroupPresentationData
 
-+ (NSArray <YTSettingsGroupData *> *)orderedGroups {
-    NSArray <YTSettingsGroupData *> *groups = %orig;
-    NSMutableArray <YTSettingsGroupData *> *mutableGroups = [groups mutableCopy];
-    YTSettingsGroupData *tweakGroup = [[%c(YTSettingsGroupData) alloc] initWithGroupType:TweakGroup];
-    [mutableGroups insertObject:tweakGroup atIndex:0];
-    return mutableGroups;
++ (NSArray *)orderedGroups {
+
+    NSMutableArray *groups = [%orig mutableCopy];
+
+    YTSettingsGroupData *group =
+
+        [[%c(YTSettingsGroupData) alloc] initWithGroupType:TweakGroup];
+
+    if (group) {
+
+        [groups insertObject:group atIndex:0];
+
+    }
+
+    return groups;
+
 }
 
 %end
 
 %hook YTSettingsGroupData
 
-%new(@@:)
-+ (NSMutableArray <NSNumber *> *)tweaks {
-    static NSMutableArray <NSNumber *> *tweaks = nil;
+%new
+
++ (NSMutableArray<NSNumber *> *)tweaks {
+
+    static NSMutableArray *tweaks;
+
     static dispatch_once_t onceToken;
+
     dispatch_once(&onceToken, ^{
-        tweaks = [NSMutableArray new];
-        [tweaks addObjectsFromArray:@[
-            @(404), // YTABConfig
-            @(YTIcons), // YTIcons
-            @(YTweaks), // YTweaks
-            @(VolumeBoostYT), // VolumeBoostYT
-            @(2002), // Gonerino
-            @(YTFlags), // YTFlags
-            @(500), // uYou+,
-            @(517), // DontEatMyContent
-            @(1080), // Return YouTube Dislike
-            @(YTUHD),
+
+        tweaks = [@[
+
+            @(YTIcons),
+
+            @(YTweaks),
+
             @(YouChooseQuality),
-            @(200), // YouPiP
+
+            @(YTUHD),
+
             @(YouSlider),
-            @(2168), // YTHoldForSpeed
-            @(1222), // YTVideoOverlay
-        ]];
+
+            @(1080),   // Return YouTube Dislike
+
+            @(517),    // DontEatMyContent
+
+            @(200),    // YouPiP
+
+            @(2168),   // YTHoldForSpeed
+
+            @(1222)    // YTVideoOverlay
+
+        ] mutableCopy];
+
     });
+
     return tweaks;
+
 }
 
 - (NSString *)titleForSettingGroupType:(NSUInteger)type {
+
     if (type == TweakGroup) {
-        NSBundle *tweakBundle = TweakBundle();
-        return LOC(@"TWEAKS");
+
+        return @"Tweaks";
+
     }
+
     return %orig;
+
 }
 
-- (NSArray <NSNumber *> *)orderedCategoriesForGroupType:(NSUInteger)type {
-    if (type == TweakGroup)
+- (NSArray *)orderedCategoriesForGroupType:(NSUInteger)type {
+
+    if (type == TweakGroup) {
+
         return [[self class] tweaks];
+
+    }
+
     return %orig;
+
 }
 
 %end
 
 %hook YTSettingsViewController
 
-- (void)setSectionItems:(NSMutableArray *)sectionItems forCategory:(NSInteger)category title:(NSString *)title icon:(YTIIcon *)icon titleDescription:(NSString *)titleDescription headerHidden:(BOOL)headerHidden {
-    if (icon == nil && [[%c(YTSettingsGroupData) tweaks] containsObject:@(category)]) {
-        icon = [%c(YTIIcon) new];
-        icon.iconType = YT_SETTINGS;
+- (void)setSectionItems:(NSMutableArray *)items
+
+           forCategory:(NSInteger)category
+
+                  title:(NSString *)title
+
+                  icon:(YTIIcon *)icon
+
+      titleDescription:(NSString *)desc
+
+         headerHidden:(BOOL)hidden {
+
+    if (!icon && [[%c(YTSettingsGroupData) tweaks] containsObject:@(category)]) {
+
+        YTIIcon *newIcon = [%c(YTIIcon) new];
+
+        newIcon.iconType = 44; // YT_SETTINGS default
+
+        icon = newIcon;
+
     }
-    %orig;
+
+    %orig(items, category, title, icon, desc, hidden);
+
 }
 
 %end
