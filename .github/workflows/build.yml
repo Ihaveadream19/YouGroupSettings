@@ -1,0 +1,151 @@
+name: Build YouGroupSettings
+
+on:
+
+  workflow_dispatch:
+
+  push:
+
+jobs:
+
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+
+      # ─────────────────────────────
+
+      # Checkout
+
+      # ─────────────────────────────
+
+      - name: Checkout
+
+        uses: actions/checkout@v4
+
+      # ─────────────────────────────
+
+      # Tools
+
+      # ─────────────────────────────
+
+      - name: Install tools
+
+        run: brew install make xz ldid
+
+      # ─────────────────────────────
+
+      # Theos
+
+      # ─────────────────────────────
+
+      - name: Setup Theos
+
+        run: |
+
+          git clone --recursive https://github.com/theos/theos.git $HOME/theos
+
+          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+
+          echo "PATH=$HOME/theos/bin:$PATH" >> $GITHUB_ENV
+
+      # ─────────────────────────────
+
+      # SDK
+
+      # ─────────────────────────────
+
+      - name: Setup SDK
+
+        run: |
+
+          rm -rf $HOME/theos/sdks
+
+          git clone --depth 1 https://github.com/theos/sdks.git $HOME/theos/sdks
+
+      # ─────────────────────────────
+
+      # PSHeader (wichtig für Preferences / misc)
+
+      # ─────────────────────────────
+
+      - name: Setup PSHeader
+
+        run: |
+
+          git clone https://github.com/Ihaveadream19/PSHeader.git
+
+          mkdir -p $THEOS/include/PSHeader
+
+          cp -R PSHeader/* $THEOS/include/PSHeader/
+
+      # ─────────────────────────────
+
+      # YouTubeHeader (wichtig für YT Klassen)
+
+      # ─────────────────────────────
+
+      - name: Setup YouTubeHeader
+
+        run: |
+
+          git clone https://github.com/PoomSmart/YouTubeHeader.git
+
+          mkdir -p $THEOS/include/YouTubeHeader
+
+          cp -R YouTubeHeader/* $THEOS/include/YouTubeHeader/
+
+      # ─────────────────────────────
+
+      # Build
+
+      # ─────────────────────────────
+
+      - name: Build tweak
+
+        run: |
+
+          make clean || true
+
+          make package FINALPACKAGE=1
+
+      # ─────────────────────────────
+
+      # Debug output
+
+      # ─────────────────────────────
+
+      - name: Find dylib
+
+        run: find . -name "*.dylib"
+
+      # ─────────────────────────────
+
+      # Collect dylib
+
+      # ─────────────────────────────
+
+      - name: Collect dylib
+
+        run: |
+
+          mkdir -p output
+
+          find .theos -name "*.dylib" -exec cp {} output/ \;
+
+      # ─────────────────────────────
+
+      # Upload artifact
+
+      # ─────────────────────────────
+
+      - name: Upload dylib
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: YouGroupSettings
+
+          path: output/
