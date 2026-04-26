@@ -112,16 +112,6 @@ jobs:
 
       # ─────────────────────────────
 
-      # Debug dylib
-
-      # ─────────────────────────────
-
-      - name: Find dylib
-
-        run: find . -name "*.dylib"
-
-      # ─────────────────────────────
-
       # Collect dylib
 
       # ─────────────────────────────
@@ -136,7 +126,7 @@ jobs:
 
       # ─────────────────────────────
 
-      # Create bundle
+      # Create bundle (FIXED)
 
       # ─────────────────────────────
 
@@ -150,13 +140,23 @@ jobs:
 
           {
 
-            CFBundleIdentifier = "com.yougroupsettings.bundle";
+            CFBundleDevelopmentRegion = en;
 
-            CFBundleName = "YouGroupSettings";
+            CFBundleExecutable = YouGroupSettings;
 
-            CFBundleVersion = "1.0";
+            CFBundleIdentifier = com.yougroupsettings.bundle;
 
-            CFBundlePackageType = "BNDL";
+            CFBundleInfoDictionaryVersion = 6.0;
+
+            CFBundleName = YouGroupSettings;
+
+            CFBundlePackageType = BNDL;
+
+            CFBundleShortVersionString = 1.0;
+
+            CFBundleVersion = 1.0;
+
+            NSPrincipalClass = NSObject;
 
           }
 
@@ -168,11 +168,35 @@ jobs:
 
       # ─────────────────────────────
 
+      # Create tweak plist (WICHTIG)
+
+      # ─────────────────────────────
+
+      - name: Create tweak plist
+
+        run: |
+
+          cat > output/YouGroupSettings.plist <<EOF
+
+          {
+
+            Filter = {
+
+              Bundles = ( "com.google.ios.youtube" );
+
+            };
+
+          }
+
+          EOF
+
+      # ─────────────────────────────
+
       # Upload
 
       # ─────────────────────────────
 
-      - name: Upload dylib + bundle
+      - name: Upload final files
 
         uses: actions/upload-artifact@v4
 
