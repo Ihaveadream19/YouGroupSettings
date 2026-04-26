@@ -16,6 +16,8 @@
 
 #define YouSlider 'ytsl'
 
+#define YTweaks 'ytwk'
+
 #define LOC(x) [[NSBundle mainBundle] localizedStringForKey:x value:nil table:nil]
 
 @interface YTSettingsGroupData (YouGroupSettings)
@@ -156,7 +158,7 @@ static NSBundle *TweakBundle(void) {
 
         YTIIcon *newIcon = [%c(YTIIcon) new];
 
-        newIcon.iconType = 44; // YT_SETTINGS default
+        newIcon.iconType = 44;
 
         icon = newIcon;
 
