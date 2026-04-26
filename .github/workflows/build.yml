@@ -66,7 +66,7 @@ jobs:
 
       # ─────────────────────────────
 
-      # PSHeader (wichtig für Preferences / misc)
+      # PSHeader
 
       # ─────────────────────────────
 
@@ -82,7 +82,7 @@ jobs:
 
       # ─────────────────────────────
 
-      # YouTubeHeader (wichtig für YT Klassen)
+      # YouTubeHeader
 
       # ─────────────────────────────
 
@@ -112,7 +112,7 @@ jobs:
 
       # ─────────────────────────────
 
-      # Debug output
+      # Debug dylib
 
       # ─────────────────────────────
 
@@ -136,11 +136,43 @@ jobs:
 
       # ─────────────────────────────
 
-      # Upload artifact
+      # Create bundle
 
       # ─────────────────────────────
 
-      - name: Upload dylib
+      - name: Create bundle
+
+        run: |
+
+          mkdir -p output/YouGroupSettings.bundle
+
+          cat > output/YouGroupSettings.bundle/Info.plist <<EOF
+
+          {
+
+            CFBundleIdentifier = "com.yougroupsettings.bundle";
+
+            CFBundleName = "YouGroupSettings";
+
+            CFBundleVersion = "1.0";
+
+            CFBundlePackageType = "BNDL";
+
+          }
+
+          EOF
+
+          mkdir -p output/YouGroupSettings.bundle/en.lproj
+
+          echo '"TWEAKS" = "Tweaks";' > output/YouGroupSettings.bundle/en.lproj/Localizable.strings
+
+      # ─────────────────────────────
+
+      # Upload
+
+      # ─────────────────────────────
+
+      - name: Upload dylib + bundle
 
         uses: actions/upload-artifact@v4
 
