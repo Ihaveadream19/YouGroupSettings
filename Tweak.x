@@ -6,17 +6,17 @@
 
 #import <YouTubeHeader/YTIIcon.h>
 
-#define TweakGroup 'psyt'
+#define TweakGroup 1000
 
-#define YTIcons 'ytic'
+#define YTIcons 1001
 
-#define YouChooseQuality 'ycql'
+#define YouChooseQuality 1002
 
-#define YTUHD 'ythd'
+#define YTUHD 1003
 
-#define YouSlider 'ytsl'
+#define YouSlider 1004
 
-#define YTweaks 'ytwk'
+#define YTweaks 1005
 
 #define LOC(x) [[NSBundle mainBundle] localizedStringForKey:x value:nil table:nil]
 
