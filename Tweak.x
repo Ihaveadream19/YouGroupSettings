@@ -4,7 +4,9 @@
 
 #import <PSHeader/Misc.h>
 
-#define LOC(x) [tweakBundle localizedStringForKey:x value:nil table:nil]
+// 🔧 FIX: LOC nutzt jetzt die Funktion korrekt
+
+#define LOC(x) [TweakBundle() localizedStringForKey:(x) value:nil table:nil]
 
 @interface YTSettingsGroupData (YouGroupSettings)
 
@@ -16,7 +18,7 @@
 
 static const NSInteger TweakGroup = 'psyt';
 
-// 🆕 NEW SECTION (deine eigene)
+// 🆕 NEW SECTION
 
 static const NSInteger SponsorGroup = 'sprg';
 
@@ -44,7 +46,9 @@ NSBundle *TweakBundle() {
 
     dispatch_once(&onceToken, ^{
 
-        NSString *tweakBundlePath = [[NSBundle mainBundle] pathForResource:@"YouGroupSettings" ofType:@"bundle"];
+        NSString *tweakBundlePath =
+
+            [[NSBundle mainBundle] pathForResource:@"YouGroupSettings" ofType:@"bundle"];
 
         bundle = [NSBundle bundleWithPath:tweakBundlePath ?: PS_ROOT_PATH_NS(@"/Library/Application Support/YouGroupSettings.bundle")];
 
@@ -64,19 +68,13 @@ NSBundle *TweakBundle() {
 
     NSMutableArray *mutableGroups = [groups mutableCopy];
 
-    // 🔹 Original Tweaks Section
-
     YTSettingsGroupData *tweakGroup =
 
         [[%c(YTSettingsGroupData) alloc] initWithGroupType:TweakGroup];
 
-    // 🔸 New Sponsor/My Section
-
     YTSettingsGroupData *sponsorGroup =
 
         [[%c(YTSettingsGroupData) alloc] initWithGroupType:SponsorGroup];
-
-    // Reihenfolge:
 
     [mutableGroups insertObject:tweakGroup atIndex:0];
 
@@ -156,7 +154,7 @@ NSBundle *TweakBundle() {
 
     if (type == SponsorGroup) {
 
-        return @"Sponsor"; // 🔥 DEINE NEUE SECTION
+        return @"Sponsor";
 
     }
 
@@ -172,7 +170,7 @@ NSBundle *TweakBundle() {
 
     if (type == SponsorGroup)
 
-        return @[]; // leer = nur Header sichtbar
+        return @[];
 
     return %orig;
 
