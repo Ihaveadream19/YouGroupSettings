@@ -1,88 +1,144 @@
-#import <UIKit/UIKit.h>
-
-#import <Foundation/Foundation.h>
+#import <YouTubeHeader/YTIIcon.h>
 
 #import <YouTubeHeader/YTSettingsGroupData.h>
 
-#import <YouTubeHeader/YTIIcon.h>
+#import <PSHeader/Misc.h>
 
-#define TweakGroup 1000
-
-#define YTIcons 1001
-
-#define YouChooseQuality 1002
-
-#define YTUHD 1003
-
-#define YouSlider 1004
-
-#define YTweaks 1005
-
-#define LOC(x) [[NSBundle mainBundle] localizedStringForKey:x value:nil table:nil]
+#define LOC(x) [tweakBundle localizedStringForKey:x value:nil table:nil]
 
 @interface YTSettingsGroupData (YouGroupSettings)
 
-+ (NSMutableArray<NSNumber *> *)tweaks;
++ (NSMutableArray <NSNumber *> *)tweaks;
 
 @end
 
-%hook YTAppSettingsGroupPresentationData
+// 🔥 ORIGINAL SECTION
 
-+ (NSArray *)orderedGroups {
+static const NSInteger TweakGroup = 'psyt';
 
-    NSMutableArray *groups = [%orig mutableCopy];
+// 🆕 NEW SECTION (deine eigene)
 
-    YTSettingsGroupData *group =
+static const NSInteger SponsorGroup = 'sprg';
 
-        [[%c(YTSettingsGroupData) alloc] initWithGroupType:TweakGroup];
+static const NSInteger YTIcons = 'ytic';
 
-    if (group) {
+static const NSInteger YouChooseQuality = 'ycql';
 
-        [groups insertObject:group atIndex:0];
+static const NSInteger YTUHD = 'ythd';
 
-    }
+static const NSInteger YouSlider = 'ytsl';
 
-    return groups;
+static const NSInteger YTweaks = 'ytwk';
 
-}
+static const NSInteger YTFlags = 'ytfl';
 
-%end
+static const NSInteger VolumeBoostYT = 'ndyt';
 
-%hook YTSettingsGroupData
+static const NSInteger YouMod = 'ytmo';
 
-%new
+NSBundle *TweakBundle() {
 
-+ (NSMutableArray<NSNumber *> *)tweaks {
-
-    static NSMutableArray *tweaks;
+    static NSBundle *bundle = nil;
 
     static dispatch_once_t onceToken;
 
     dispatch_once(&onceToken, ^{
 
-        tweaks = [@[
+        NSString *tweakBundlePath = [[NSBundle mainBundle] pathForResource:@"YouGroupSettings" ofType:@"bundle"];
+
+        bundle = [NSBundle bundleWithPath:tweakBundlePath ?: PS_ROOT_PATH_NS(@"/Library/Application Support/YouGroupSettings.bundle")];
+
+    });
+
+    return bundle;
+
+}
+
+#pragma mark - Add Sections
+
+%hook YTAppSettingsGroupPresentationData
+
++ (NSArray <YTSettingsGroupData *> *)orderedGroups {
+
+    NSArray *groups = %orig;
+
+    NSMutableArray *mutableGroups = [groups mutableCopy];
+
+    // 🔹 Original Tweaks Section
+
+    YTSettingsGroupData *tweakGroup =
+
+        [[%c(YTSettingsGroupData) alloc] initWithGroupType:TweakGroup];
+
+    // 🔸 New Sponsor/My Section
+
+    YTSettingsGroupData *sponsorGroup =
+
+        [[%c(YTSettingsGroupData) alloc] initWithGroupType:SponsorGroup];
+
+    // Reihenfolge:
+
+    [mutableGroups insertObject:tweakGroup atIndex:0];
+
+    [mutableGroups insertObject:sponsorGroup atIndex:1];
+
+    return mutableGroups;
+
+}
+
+%end
+
+#pragma mark - Group Logic
+
+%hook YTSettingsGroupData
+
+%new(@@:)
+
++ (NSMutableArray <NSNumber *> *)tweaks {
+
+    static NSMutableArray *tweaks = nil;
+
+    static dispatch_once_t onceToken;
+
+    dispatch_once(&onceToken, ^{
+
+        tweaks = [NSMutableArray new];
+
+        [tweaks addObjectsFromArray:@[
+
+            @(404),
 
             @(YTIcons),
 
             @(YTweaks),
 
-            @(YouChooseQuality),
+            @(VolumeBoostYT),
 
-            @(YTUHD),
+            @(2002),
 
-            @(YouSlider),
+            @(YTFlags),
 
-            @(1080),
+            @(YouMod),
+
+            @(500),
 
             @(517),
 
+            @(1080),
+
+            @(YTUHD),
+
+            @(YouChooseQuality),
+
             @(200),
+
+            @(YouSlider),
 
             @(2168),
 
-            @(1222)
+            @(1222),
 
-        ] mutableCopy];
+        ]];
 
     });
 
@@ -94,7 +150,13 @@
 
     if (type == TweakGroup) {
 
-        return @"Tweaks";
+        return LOC(@"TWEAKS");
+
+    }
+
+    if (type == SponsorGroup) {
+
+        return @"Sponsor"; // 🔥 DEINE NEUE SECTION
 
     }
 
@@ -102,13 +164,15 @@
 
 }
 
-- (NSArray *)orderedCategoriesForGroupType:(NSUInteger)type {
+- (NSArray <NSNumber *> *)orderedCategoriesForGroupType:(NSUInteger)type {
 
-    if (type == TweakGroup) {
+    if (type == TweakGroup)
 
         return [[self class] tweaks];
 
-    }
+    if (type == SponsorGroup)
+
+        return @[]; // leer = nur Header sichtbar
 
     return %orig;
 
@@ -116,31 +180,31 @@
 
 %end
 
+#pragma mark - Icon Fix
+
 %hook YTSettingsViewController
 
-- (void)setSectionItems:(NSMutableArray *)items
+- (void)setSectionItems:(NSMutableArray *)sectionItems
 
-           forCategory:(NSInteger)category
+         forCategory:(NSInteger)category
 
-                  title:(NSString *)title
+               title:(NSString *)title
 
-                  icon:(YTIIcon *)icon
+                icon:(YTIIcon *)icon
 
-      titleDescription:(NSString *)desc
+  titleDescription:(NSString *)titleDescription
 
-         headerHidden:(BOOL)hidden {
+      headerHidden:(BOOL)headerHidden {
 
-    if (!icon && [[%c(YTSettingsGroupData) tweaks] containsObject:@(category)]) {
+    if (icon == nil && [[%c(YTSettingsGroupData) tweaks] containsObject:@(category)]) {
 
-        YTIIcon *newIcon = [%c(YTIIcon) new];
+        icon = [%c(YTIIcon) new];
 
-        newIcon.iconType = 44;
-
-        icon = newIcon;
+        icon.iconType = YT_SETTINGS;
 
     }
 
-    %orig(items, category, title, icon, desc, hidden);
+    %orig;
 
 }
 
